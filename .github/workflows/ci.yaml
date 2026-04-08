@@ -1,38 +1,38 @@
 name: placement-system
 
-on: push
+on:
+  push:
+    branches: ["master"]
+  pull_request:
 
 jobs:
-  testing-and-packaging app:
+  testing-and-packaging-app:
     name: deploy-and-test-placement-app
     runs-on: ubuntu-latest
+
     steps:
-    - name: copy code
-      uses: actions/checkout@v6
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: install python
-      uses: actions/setup-python@v6
-      with:
-          python-version: '3.12.9' 
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
 
-    - name: Cache pip dependencies
-      uses: actions/cache@v4
-      with:
-            path: ~/.cache/pip
-            key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-            restore-keys: |
-              ${{ runner.os }}-pip-
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-    - name: install dependencies
-      run: |
-        pip install -r requirements.txt
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
 
-    - name: testing Application
-      env:
+      - name: Run Tests
+        env:
           DAGSHUB_PAT: ${{ secrets.DAGSHUB_PAT }}
-      run: |
-        python -m testing.test_app.py
-
-    
-
-
+        run: |
+          pytest -v
