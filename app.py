@@ -1,70 +1,91 @@
-from fastapi import FastAPI,Request,Form
+from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 import numpy as np
-import mlflow 
-from mlflow import MlflowClient
+import mlflow
 import dagshub
-import json
 
-app=FastAPI()
+# ------------------- App Setup -------------------
+app = FastAPI()
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
-template=Jinja2Templates('templates')
+templates = Jinja2Templates(directory="templates")
 
-
+# ------------------- MLflow Setup -------------------
 dagshub.init(
     repo_owner="umiii-786",
     repo_name="placement-prediction-Model",
     mlflow=True
 )
-mlflow.set_tracking_uri("https://dagshub.com/umiii-786/placement-prediction-Model.mlflow")
-print(mlflow.get_tracking_uri())
-# def read_ids(file_path):
-#     with open(file_path,'r') as f:
-#        ids=json.load(f)
-#        return ids
+
+mlflow.set_tracking_uri(
+    "https://dagshub.com/umiii-786/placement-prediction-Model.mlflow"
+)
+
+MODEL_URI = "models:/placement_prediction_model@production"
 
 
-
-MODEL_URI="models:/placement_prediction_model@production"
-# model = mlflow.pyfunc.load_model(
-# )
-model = mlflow.sklearn.load_model(MODEL_URI)
-
-
-@app.get('/')
-def showIndex(request:Request):
-    print('request ai')
-    return template.TemplateResponse(request=request,name='index.html')
-
-
-
-@app.post('/predict')
-async def predict(request:Request):
-   form = await request.form()
-   record=np.array([[
-        float(form.get('cgpa')),
-        int(form.get('internship')),
-        int(form.get('certification')),
-        int(form.get('projects')),
-        int(form.get('apptitude_score')),
-        float(form.get('softskill_rating')),
-        int(form.get('ExtracurricularActivities')),
-        int(form.get('placementT')),
-        int(form.get('SSC')),
-        int(form.get('HSC')),
-      ]])
-   print(model)
-   print(record)
-   
-   result=model.predict(record)
-   prob=model.predict_proba(record)
-   print(result)
-   print(prob)
+# ------------------- Input Schema -------------------
+class InputData(BaseModel):
+    cgpa: float
+    internship: int
+    certification: int
+    projects: int
+    apptitude_score: int
+    softskill_rating: float
+    ExtracurricularActivities: int
+    placementT: int
+    SSC: int
+    HSC: int
 
 
-   return {
-        "prediction": int(result[0]),              # ✅ FIX
-        "probability": prob[0].tolist()            # ✅ better way
-    }
+# ------------------- Load Model (Lazy Loading) -------------------
+def get_model():
+    return mlflow.sklearn.load_model(MODEL_URI)
 
+
+def load_model_once():
+    global model
+    if model is None:
+        model = get_model()
+    return model
+
+model = load_model_once()
+
+# ------------------- Routes -------------------
+
+@app.get("/")
+def show_index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.post("/predict")
+def predict(data: InputData):
+    try:
+
+        record = np.array([[
+            data.cgpa,
+            data.internship,
+            data.certification,
+            data.projects,
+            data.apptitude_score,
+            data.softskill_rating,
+            data.ExtracurricularActivities,
+            data.placementT,
+            data.SSC,
+            data.HSC
+        ]])
+
+        result = model.predict(record)
+        prob = model.predict_proba(record)
+
+        return {
+            "prediction": int(result[0]),
+            "probability": prob[0].tolist()
+        }
+
+    except Exception as e:
+        return {
+            "error": str(e)
+        }
