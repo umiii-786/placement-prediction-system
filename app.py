@@ -18,6 +18,7 @@ templates = Jinja2Templates(directory=BASE_DIR / "templates")
 # ------------------- MLflow Setup -------------------
 
 dagshub_pat=os.getenv("DAGSHUB_PAT")
+
 if not dagshub_pat:
     raise EnvironmentError('DAGSHUB_PAT environment variable is not setted ') 
 os.environ['MLFLOW_TRACKING_USERNAME']=dagshub_pat 

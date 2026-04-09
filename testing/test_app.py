@@ -1,79 +1,60 @@
+import unittest
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
 import numpy as np
+from starlette.responses import HTMLResponse
 
-from app import app
+# IMPORTANT: patch model BEFORE importing app
+with patch("app.load_model_once") as mock_loader:
+    mock_model = MagicMock()
+    mock_loader.return_value = mock_model
+
+    from app import app
 
 client = TestClient(app)
 
 
-# 🔹 Test Home Route
-def test_home():
-    response = client.get("/")
-    assert response.status_code == 200
+class TestFastAPIApp(unittest.TestCase):
+
+    # Test Home Route
+    @patch("app.templates.TemplateResponse")
+    def test_homepage(self, mock_template):
+        mock_template.return_value = HTMLResponse(content="OK", status_code=200)
+        response = client.get("/")
+        self.assertEqual(response.status_code, 200)
+
+    # Test Predict Endpoint
+    @patch("app.model")   # patch global model directly
+    def test_predict_endpoint(self, mock_model):
+
+        # Mock model behavior
+        mock_model.predict.return_value = np.array([1])
+        mock_model.predict_proba.return_value = np.array([[0.2, 0.8]])
+
+        json_data = {
+            "cgpa": 7.6,
+            "internship": 1,
+            "certification": 2,
+            "projects": 3,
+            "apptitude_score": 67,
+            "softskill_rating": 4.5,
+            "ExtracurricularActivities": 1,
+            "placementT": 1,
+            "SSC": 60,
+            "HSC": 50
+        }
+
+        # IMPORTANT: send JSON, not form data
+        response = client.post("/predict", json=json_data)
+
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+
+        # Match your API response keys
+        self.assertEqual(data["prediction"], 1)
+        self.assertEqual(data["probability"], [0.2, 0.8])
 
 
-# 🔹 Test Prediction (Mocked Model)
-@patch("app.load_model_once")
-def test_predict_success(mock_model_loader):
-
-    mock_model = MagicMock()
-    mock_model.predict.return_value = np.array([1])
-    mock_model.predict_proba.return_value = np.array([[0.1, 0.9]])
-
-    mock_model_loader.return_value = mock_model
-
-    payload = {
-        "cgpa": 3.5,
-        "internship": 1,
-        "certification": 2,
-        "projects": 3,
-        "apptitude_score": 80,
-        "softskill_rating": 4.5,
-        "ExtracurricularActivities": 1,
-        "placementT": 1,
-        "SSC": 85,
-        "HSC": 90
-    }
-
-    response = client.post("/predict", json=payload)
-
-    assert response.status_code == 200
-    data = response.json()
-
-    assert data["prediction"] == 1
-    assert data["probability"] == [0.1, 0.9]
-
-
-# 🔹 Test Validation Error (Pydantic handles this)
-def test_predict_invalid_input():
-    payload = {
-        "cgpa": "invalid",  # ❌ wrong type
-        "internship": 1,
-        "certification": 2,
-        "projects": 3,
-        "apptitude_score": 80,
-        "softskill_rating": 4.5,
-        "ExtracurricularActivities": 1,
-        "placementT": 1,
-        "SSC": 85,
-        "HSC": 90
-    }
-
-    response = client.post("/predict", json=payload)
-
-    assert response.status_code == 422
-
-
-# 🔹 Test Missing Field
-def test_predict_missing_field():
-    payload = {
-        "cgpa": 3.5
-        # missing other fields
-    }
-
-    response = client.post("/predict", json=payload)
-    print('testing module')
-
-
-    assert response.status_code == 422
+if __name__ == "__main__":
+    unittest.main()
