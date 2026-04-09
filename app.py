@@ -6,11 +6,14 @@ import numpy as np
 import mlflow
 import dagshub
 import os 
+from pathlib import Path
+
 # ------------------- App Setup -------------------
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+BASE_DIR = Path(__file__).resolve().parent
+templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 # ------------------- MLflow Setup -------------------
 

@@ -14,7 +14,7 @@ def test_home():
 
 
 # 🔹 Test Prediction (Mocked Model)
-@patch("main.load_model_once")
+@patch("app.load_model_once")
 def test_predict_success(mock_model_loader):
 
     mock_model = MagicMock()
