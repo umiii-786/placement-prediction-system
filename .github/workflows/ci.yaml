@@ -35,4 +35,15 @@ jobs:
         env:
           DAGSHUB_PAT: ${{ secrets.DAGSHUB_PAT }}
         run: |
-          pytest -v
+          python -m unittest testing/test_app.py
+
+      - name: login docker
+        if: success():
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PAT }}
+
+      - name: build image
+        run: |
+          docker build -t umiii908/placement-prediction:v1 .
