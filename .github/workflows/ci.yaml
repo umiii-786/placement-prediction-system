@@ -47,3 +47,7 @@ jobs:
       - name: build image
         run: |
           docker build -t umiii908/placement-prediction:v1 .
+
+      - name: push image
+        run: |
+          docker push umiii908/placement-prediction:v1
