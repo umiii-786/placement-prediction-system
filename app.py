@@ -46,15 +46,15 @@ class InputData(BaseModel):
 def get_model():
     return mlflow.sklearn.load_model(MODEL_URI)
 
-
+model=None
 def load_model_once():
     global model
     if model is None:
         model = get_model()
     return model
 
-model = load_model_once()
 
+model = load_model_once()
 # ------------------- Routes -------------------
 
 @app.get("/")
