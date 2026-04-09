@@ -4,33 +4,28 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import numpy as np
 import mlflow
-import dagshub
-import os 
-from pathlib import Path
+import os
 
 # ------------------- App Setup -------------------
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-BASE_DIR = Path(__file__).resolve().parent
-templates = Jinja2Templates(directory=BASE_DIR / "templates")
+templates = Jinja2Templates(directory="templates")
 
 # ------------------- MLflow Setup -------------------
-
-dagshub_pat=os.getenv("DAGSHUB_PAT")
+dagshub_pat = "a55ae4d7356bf84fa662753c4cff9084c43da67d"
 
 if not dagshub_pat:
-    raise EnvironmentError('DAGSHUB_PAT environment variable is not setted ') 
-os.environ['MLFLOW_TRACKING_USERNAME']=dagshub_pat 
-os.environ['MLFLOW_TRACKING_PASSWORD']=dagshub_pat 
+    raise EnvironmentError("DAGSHUB_PAT environment variable is not set")
 
+os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_pat
+os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_pat
 
 mlflow.set_tracking_uri(
     "https://dagshub.com/umiii-786/placement-prediction-Model.mlflow"
 )
 
 MODEL_URI = "models:/placement_prediction_model@production"
-
 
 # ------------------- Input Schema -------------------
 class InputData(BaseModel):
@@ -45,32 +40,33 @@ class InputData(BaseModel):
     SSC: int
     HSC: int
 
-
-# ------------------- Load Model (Lazy Loading) -------------------
+# ------------------- Load Model -------------------
 def get_model():
     return mlflow.sklearn.load_model(MODEL_URI)
 
-model=None
+model = None
+
 def load_model_once():
     global model
     if model is None:
         model = get_model()
     return model
 
-
 model = load_model_once()
+
 # ------------------- Routes -------------------
 
 @app.get("/")
 def show_index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
+    return templates.TemplateResponse(
+       name="index.html",
+       request=request   # ✅ correct format
+    )
 
 @app.post("/predict")
 def predict(data: InputData):
     try:
-
-        record = np.array([[
+        record = np.array([[ 
             data.cgpa,
             data.internship,
             data.certification,
@@ -92,6 +88,4 @@ def predict(data: InputData):
         }
 
     except Exception as e:
-        return {
-            "error": str(e)
-        }
+        return {"error": str(e)}
