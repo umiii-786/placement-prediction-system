@@ -52,23 +52,23 @@ jobs:
         run: |
           docker push umiii908/placement-prediction:v1
 
-      - name: connect to EC2
-        if: success()
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+      # - name: connect to EC2
+      #   if: success()
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.EC2_HOST }}
+      #     username: ${{ secrets.EC2_USERNAME }}
+      #     key: ${{ secrets.EC2_SSH_KEY }}
           
-          script: |
-            docker stop placement-app || true
-            docker rm placement-app || true
+      #     script: |
+      #       docker stop placement-app || true
+      #       docker rm placement-app || true
 
-            docker run -d -p 80:8000 \
-            --restart unless-stopped \
-            -e DAGSHUB_PAT=${{ secrets.DAGSHUB_PAT }} \
-            --name placement-app \
-            umiii908/placement-prediction:v1
+      #       docker run -d -p 80:8000 \
+      #       --restart unless-stopped \
+      #       -e DAGSHUB_PAT=${{ secrets.DAGSHUB_PAT }} \
+      #       --name placement-app \
+      #       umiii908/placement-prediction:v1
 
-            docker logs placement-app --tail 50
+      #       docker logs placement-app --tail 50
     
