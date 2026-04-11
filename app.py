@@ -9,8 +9,7 @@ with patch("app.load_model_once") as mock_loader:
     mock_model = MagicMock()
     mock_loader.return_value = mock_model
 
-    from app import app
-
+from app import app
 client = TestClient(app)
 
 
