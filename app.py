@@ -1,86 +1,59 @@
-from fastapi import FastAPI, Request
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
+import unittest
+from fastapi.testclient import TestClient
+from unittest.mock import patch, MagicMock
 import numpy as np
-import mlflow
-import os
+from starlette.responses import HTMLResponse
 
-# ------------------- App Setup -------------------
-app = FastAPI()
+# IMPORTANT: patch model BEFORE importing app
+with patch("app.load_model_once") as mock_loader:
+    mock_model = MagicMock()
+    mock_loader.return_value = mock_model
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+    from app import app
 
-# ------------------- MLflow Setup -------------------
-dagshub_pat = "a55ae4d7356bf84fa662753c4cff9084c43da67d"
+client = TestClient(app)
 
-if not dagshub_pat:
-    raise EnvironmentError("DAGSHUB_PAT environment variable is not set")
 
-os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_pat
-os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_pat
+class TestFastAPIApp(unittest.TestCase):
 
-mlflow.set_tracking_uri(
-    "https://dagshub.com/umiii-786/placement-prediction-Model.mlflow"
-)
+    # Test Home Route
+    @patch("app.templates.TemplateResponse")
+    def test_homepage(self, mock_template):
+        mock_template.return_value = HTMLResponse(content="OK", status_code=200)
+        response = client.get("/")
+        self.assertEqual(response.status_code, 200)
 
-MODEL_URI = "models:/placement_prediction_model@production"
+    # Test Predict Endpoint
+    @patch("app.model")   # patch global model directly
+    def test_predict_endpoint(self, mock_model):
 
-# ------------------- Load Model -------------------
-def get_model():
-    return mlflow.sklearn.load_model(MODEL_URI)
+        # Mock model behavior
+        mock_model.predict.return_value = np.array([1])
+        mock_model.predict_proba.return_value = np.array([[0.2, 0.8]])
 
-model = None
-
-def load_model_once():
-    global model
-    if model is None:
-        model = get_model()
-    return model
-
-model = load_model_once()
-
-# ------------------- Routes -------------------
-
-@app.get("/")
-def show_index(request: Request):
-    return templates.TemplateResponse(
-       name="index.html",
-       request=request   # ✅ correct format
-    )
-
-@app.post("/predict")
-async def predict(request: Request):
-    print('request ai')
-    try:
-        form = await request.form()
-        print(form)
-        #  cgpa,internship,certification,projects,apptitude_score,softskill_rating,ExtracurricularActivities,placementT,SSC,HSC
-        record = np.array([[ 
-            float(form.get('cgpa')),
-            int(form.get('internship')),
-            int(form.get('certification')),
-            int(form.get('projects')),
-            int(form.get('apptitude_score')),
-            float(form.get('softskill_rating')),
-            int(form.get('ExtracurricularActivities')),
-            int(form.get('placementT')),
-            int(form.get('SSC')),
-            int(form.get('HSC'))
-        ]])
-        print(record)
-
-        result = model.predict(record)
-        prob = model.predict_proba(record)
-        print('result gya')
-        print({
-            "prediction": int(result[0]),
-            "probability": prob[0].tolist()
-        })
-        return {
-            "prediction": int(result[0]),
-            "probability": prob[0].tolist()
+        form_data = {
+            "cgpa": "7.6",
+            "internship": "1",
+            "certification": "2",
+            "projects": "3",
+            "apptitude_score": "67",
+            "softskill_rating": "4.5",
+            "ExtracurricularActivities": "1",
+            "placementT": "1",
+            "SSC": "60",
+            "HSC": "50"
         }
 
-    except Exception as e:
-        return {"error": str(e)}
+        # ✅ Send as FORM DATA (not JSON)
+        response = client.post("/predict", data=form_data)
+
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+
+        self.assertEqual(data["prediction"], 1)
+        self.assertEqual(data["probability"], [0.2, 0.8])
+
+
+if __name__ == "__main__":
+    unittest.main()
