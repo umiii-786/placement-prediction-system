@@ -1,7 +1,8 @@
 /* Modern High-Contrast Color Palette */
 :root {
     --primary: #0f172a; /* Deep Navy/Slate Black */
-    --primary-light: #10b981; /* Vibrant Emerald for contrast */
+    /* --primary-light: #10b981; Vibrant Emerald for contrast */
+    --primary-light: #ffffff; /* Vibrant Emerald for contrast */
     --secondary: #f8fafc; /* Crisp Light Gray/Blue */
     --accent: #fbbf24; /* Bright Amber for highlights */
     --text-dark: #0f172a;
@@ -27,16 +28,20 @@ body {
 
 /* --- Landing Page Layout --- */
 header {
-    height: 100vh;
+    max-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 0 20px;
+    padding: 50px 20px;
     background: radial-gradient(circle at top right, #e2e8f0, transparent),
                 radial-gradient(circle at bottom left, #f1f5f9, transparent);
     position: relative;
+    background: burlywood;
+}
+.hero-content{
+    margin: 50px 0px;
 }
 
 .hero-content h1 {

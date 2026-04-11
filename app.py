@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
 import numpy as np
 import mlflow
 import os
@@ -27,19 +26,6 @@ mlflow.set_tracking_uri(
 
 MODEL_URI = "models:/placement_prediction_model@production"
 
-# ------------------- Input Schema -------------------
-class InputData(BaseModel):
-    cgpa: float
-    internship: int
-    certification: int
-    projects: int
-    apptitude_score: int
-    softskill_rating: float
-    ExtracurricularActivities: int
-    placementT: int
-    SSC: int
-    HSC: int
-
 # ------------------- Load Model -------------------
 def get_model():
     return mlflow.sklearn.load_model(MODEL_URI)
@@ -64,24 +50,33 @@ def show_index(request: Request):
     )
 
 @app.post("/predict")
-def predict(data: InputData):
+async def predict(request: Request):
+    print('request ai')
     try:
+        form = await request.form()
+        print(form)
+        #  cgpa,internship,certification,projects,apptitude_score,softskill_rating,ExtracurricularActivities,placementT,SSC,HSC
         record = np.array([[ 
-            data.cgpa,
-            data.internship,
-            data.certification,
-            data.projects,
-            data.apptitude_score,
-            data.softskill_rating,
-            data.ExtracurricularActivities,
-            data.placementT,
-            data.SSC,
-            data.HSC
+            float(form.get('cgpa')),
+            int(form.get('internship')),
+            int(form.get('certification')),
+            int(form.get('projects')),
+            int(form.get('apptitude_score')),
+            float(form.get('softskill_rating')),
+            int(form.get('ExtracurricularActivities')),
+            int(form.get('placementT')),
+            int(form.get('SSC')),
+            int(form.get('HSC'))
         ]])
+        print(record)
 
         result = model.predict(record)
         prob = model.predict_proba(record)
-
+        print('result gya')
+        print({
+            "prediction": int(result[0]),
+            "probability": prob[0].tolist()
+        })
         return {
             "prediction": int(result[0]),
             "probability": prob[0].tolist()
