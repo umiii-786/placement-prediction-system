@@ -1,58 +1,92 @@
-import unittest
-from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 import numpy as np
-from starlette.responses import HTMLResponse
+import mlflow
+import os
 
-# IMPORTANT: patch model BEFORE importing app
-with patch("app.load_model_once") as mock_loader:
-    mock_model = MagicMock()
-    mock_loader.return_value = mock_model
+# ------------------- App Setup -------------------
+app = FastAPI()
 
-from app import app
-client = TestClient(app)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
+# ------------------- MLflow Setup -------------------
+dagshub_pat = "a55ae4d7356bf84fa662753c4cff9084c43da67d"
 
-class TestFastAPIApp(unittest.TestCase):
+if not dagshub_pat:
+    raise EnvironmentError("DAGSHUB_PAT environment variable is not set")
 
-    # Test Home Route
-    @patch("app.templates.TemplateResponse")
-    def test_homepage(self, mock_template):
-        mock_template.return_value = HTMLResponse(content="OK", status_code=200)
-        response = client.get("/")
-        self.assertEqual(response.status_code, 200)
+os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_pat
+os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_pat
 
-    # Test Predict Endpoint
-    @patch("app.model")   # patch global model directly
-    def test_predict_endpoint(self, mock_model):
+mlflow.set_tracking_uri(
+    "https://dagshub.com/umiii-786/placement-prediction-Model.mlflow"
+)
 
-        # Mock model behavior
-        mock_model.predict.return_value = np.array([1])
-        mock_model.predict_proba.return_value = np.array([[0.2, 0.8]])
+MODEL_URI = "models:/placement_prediction_model@production"
 
-        form_data = {
-            "cgpa": "7.6",
-            "internship": "1",
-            "certification": "2",
-            "projects": "3",
-            "apptitude_score": "67",
-            "softskill_rating": "4.5",
-            "ExtracurricularActivities": "1",
-            "placementT": "1",
-            "SSC": "60",
-            "HSC": "50"
+# ------------------- Input Schema -------------------
+class InputData(BaseModel):
+    cgpa: float
+    internship: int
+    certification: int
+    projects: int
+    apptitude_score: int
+    softskill_rating: float
+    ExtracurricularActivities: int
+    placementT: int
+    SSC: int
+    HSC: int
+
+# ------------------- Load Model -------------------
+def get_model():
+    return mlflow.sklearn.load_model(MODEL_URI)
+
+model = None
+
+def load_model_once():
+    global model
+    if model is None:
+        model = get_model()
+    return model
+
+model = load_model_once()
+
+# ------------------- Routes -------------------
+
+@app.get("/")
+def show_index(request: Request):
+    return templates.TemplateResponse(
+       name="index.html",
+       request=request   # ✅ correct format
+    )
+
+@app.post("/predict")
+def predict(data: InputData):
+    print('request ai')
+    try:
+        record = np.array([[ 
+            data.cgpa,
+            data.internship,
+            data.certification,
+            data.projects,
+            data.apptitude_score,
+            data.softskill_rating,
+            data.ExtracurricularActivities,
+            data.placementT,
+            data.SSC,
+            data.HSC
+        ]])
+
+        result = model.predict(record)
+        prob = model.predict_proba(record)
+
+        return {
+            "prediction": int(result[0]),
+            "probability": prob[0].tolist()
         }
 
-        # ✅ Send as FORM DATA (not JSON)
-        response = client.post("/predict", data=form_data)
-
-        self.assertEqual(response.status_code, 200)
-
-        data = response.json()
-
-        self.assertEqual(data["prediction"], 1)
-        self.assertEqual(data["probability"], [0.2, 0.8])
-
-
-if __name__ == "__main__":
-    unittest.main()
+    except Exception as e:
+        return {"error": str(e)}

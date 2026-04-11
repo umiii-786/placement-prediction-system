@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FuturePath | Elevate Your Career</title>
     <link href="{{ url_for('static', path='/index.css') }}" rel="stylesheet">
 </head>
+
 <body>
 
     <header>
         <div class="hero-content">
-            <div style="background: var(--primary); color: white; display: inline-block; padding: 6px 18px; border-radius: 8px; font-weight: 800; margin-bottom: 25px; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;">Engine v2.0 Live</div>
+            <div
+                style="background: var(--primary); color: white; display: inline-block; padding: 6px 18px; border-radius: 8px; font-weight: 800; margin-bottom: 25px; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;">
+                Engine v2.0 Live</div>
             <h1>Placement <br><span style="color: var(--primary-light)">Intelligence.</span></h1>
-            <p>We've swapped dim colors for a high-contrast dark aesthetic to make your data-driven career path clear and actionable.</p>
+            <p>We've swapped dim colors for a high-contrast dark aesthetic to make your data-driven career path clear
+                and actionable.</p>
             <a href="#predictor-tool" class="cta-btn">Initialize Predictor</a>
         </div>
     </header>
@@ -31,58 +36,64 @@
                         <!-- Row 1 -->
                         <div class="form-group">
                             <label>Current CGPA</label>
-                            <input type="number" id="cgpa" step="0.1" min="0" max="10" placeholder="e.g. 8.5" name="cgpa" required>
+                            <input type="number" id="cgpa" step="0.1" min="0" max="10" placeholder="e.g. 8.5"
+                                name="cgpa" required>
                         </div>
-                        
+
                         <!-- Row 2 -->
                         <div class="form-group">
                             <label>Internships</label>
-                            <input type="number" name="internship" id="internships" min="0" max="5" placeholder="Count" required>
+                            <input type="number" name="internship" id="internships" min="0" max="5" placeholder="Count"
+                                required>
                         </div>
-                        
 
-                          <!-- Row 3 -->
+
+                        <!-- Row 3 -->
                         <div class="form-group">
                             <label>Certifications</label>
-                            <input type="number" name="certification" id="certs" min="0" placeholder="Enter No OF Certifications" required>
+                            <input type="number" name="certification" id="certs" min="0"
+                                placeholder="Enter No OF Certifications" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label>Total Projects</label>
-                            <input type="number" id="projects" name="projects" min="0" placeholder="Enter No OF Projects" required>
+                            <input type="number" id="projects" name="projects" min="0"
+                                placeholder="Enter No OF Projects" required>
                         </div>
-                        
+
 
                         <div class="form-group">
                             <label>Aptitude Score (0-100)</label>
-                            <input type="number" id="aptitude" min="0" max="100" placeholder="Quantitative" name="apptitude_score" required>
+                            <input type="number" id="aptitude" min="0" max="100" placeholder="Quantitative"
+                                name="apptitude_score" required>
                         </div>
-                        
+
 
 
                         <div class="form-group">
                             <label>SoftSkill Rating (0-5)</label>
-                            <input type="number" id="softskill" min="0" step="0.1" max="5" placeholder="SoftSkill Rating" name="softskill_rating" required>
+                            <input type="number" id="softskill" min="0" step="0.1" max="5"
+                                placeholder="SoftSkill Rating" name="softskill_rating" required>
                         </div>
 
-                        
+
 
                         <div class="form-group">
                             <label>ExtracurricularActivities</label>
                             <select id="ExtracurricularActivities" name="ExtracurricularActivities">
                                 <option value="1">Yes</option>
-                                <option value="0">No</option> 
+                                <option value="0">No</option>
                             </select>
                         </div>
 
-                        
 
 
-                         <div class="form-group">
+
+                        <div class="form-group">
                             <label>Placement Training</label>
                             <select id="PlacementT" name="placementT">
                                 <option value="1">Yes</option>
-                                <option value="0">No</option> 
+                                <option value="0">No</option>
                             </select>
                         </div>
 
@@ -91,15 +102,16 @@
                             <label>10th Grade (%)</label>
                             <input type="number" name="SSC" id="ssc" min="0" max="100" placeholder="e.g. 90" required>
                         </div>
-                        
+
 
                         <div class="form-group">
                             <label>12th Grade (%)</label>
                             <input type="number" name="HSC" id="hsc" min="0" max="100" placeholder="e.g. 88" required>
                         </div>
-        
+
                     </div>
-                    <button type="submit" class="cta-btn" style="width: 100%; padding: 20px;">Analyze My Career Trajectory</button>
+                    <button type="submit" class="cta-btn" style="width: 100%; padding: 20px;">Analyze My Career
+                        Trajectory</button>
                 </form>
             </div>
 
@@ -119,15 +131,21 @@
                         </svg>
                         <div class="gauge-text" id="probText">0%</div>
                     </div>
-                    
-                    <h2 id="verdictTitle" style="margin-bottom: 12px; font-weight: 900; font-size: 2rem;">Calculation Complete</h2>
-                    <p id="verdictDesc" style="color: rgba(255,255,255,0.8); margin-bottom: 25px; font-size: 1.1rem; max-width: 400px; margin-left: auto; margin-right: auto;"></p>
+
+                    <h2 id="verdictTitle" style="margin-bottom: 12px; font-weight: 900; font-size: 2rem;">Calculation
+                        Complete</h2>
+                    <p id="verdictDesc"
+                        style="color: rgba(255,255,255,0.8); margin-bottom: 25px; font-size: 1.1rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+                    </p>
 
                     <div id="loadingAI" class="loading-ring"></div>
-                    
+
                     <div id="aiAdviceBox" class="advice-card" style="display: none;">
-                        <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 900; margin-bottom: 15px; color: var(--primary-light); letter-spacing: 0.15em;">AI Strategic Roadmap</div>
-                        <div id="aiText" style="line-height: 1.7; font-size: 0.95rem; color: rgba(255,255,255,0.95);"></div>
+                        <div
+                            style="font-size: 0.75rem; text-transform: uppercase; font-weight: 900; margin-bottom: 15px; color: var(--primary-light); letter-spacing: 0.15em;">
+                            AI Strategic Roadmap</div>
+                        <div id="aiText" style="line-height: 1.7; font-size: 0.95rem; color: rgba(255,255,255,0.95);">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -139,7 +157,7 @@
     </footer>
 
     <script>
-   //     const apiKey = ""; // Managed by environment
+        //     const apiKey = ""; // Managed by environment
         const form = document.getElementById('predictionForm');
         const resultsPanel = document.getElementById('resultsPanel');
         const placeholder = document.getElementById('placeholder');
@@ -162,26 +180,30 @@
                 aiAdviceBox.style.display = 'none';
                 loadingAI.style.display = 'none';
 
-                const formdata=new FormData(form)
-            
+                const formdata = new FormData(form)
+                const jsonData = Object.fromEntries(formdata.entries())
+
                 const response = await fetch('/predict', {
                     method: 'POST',
-                    body: formdata
-                });
-                const result = await response.json();
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(jsonData)   // ✅ FIXED
+                })
+
+                const result = await response.json()
+
                 console.log(result)
-
-
-                // 
                 console.log(result['probability'])
                 console.log(result['probability'][1])
-                let probability = result['probability'][1]*100;
+
+                let probability = result['probability'][1] * 100;
                 console.log(result['probability'])
                 console.log(probability)
                 // Animate Gauge
                 const offset = 565 - (565 * probability / 100);
                 gaugeFill.style.strokeDashoffset = offset;
-                
+
                 animateValue(probText, 0, probability, 2000);
 
                 setTimeout(() => {
@@ -195,7 +217,7 @@
                         verdictTitle.innerText = "Upskill Required";
                         verdictDesc.innerText = "Current metrics are below market average. Prioritize projects and certifications.";
                     }
-                        
+
                 }, 500);
 
                 loadingAI.style.display = 'none';
@@ -203,13 +225,13 @@
 
                 return;
             } catch (err) {
-                    
+
                 throw new Error('Something Went Wrong on the Server Side')
 
             }
 
-         
-       
+
+
         });
 
         function animateValue(obj, start, end, duration) {
@@ -223,7 +245,8 @@
             window.requestAnimationFrame(step);
         }
 
-  
+
     </script>
 </body>
+
 </html>
